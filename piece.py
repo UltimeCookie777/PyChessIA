@@ -1,27 +1,34 @@
 def squareExist(pos) -> list:
-    # Unpack the row and column indices from the square tuple
-    row, col = pos
-    # Return True if the indices are both between 0 and 7 (inclusive), False otherwise
+    x, y = pos
     
-    if 0 <= row <= 7 and 0 <= col <= 7:
+    if 0 <= x <= 7 and 0 <= y <= 7:
         return pos
     else:
-        return [-1,-1]
+        return []
+
+def removeInvalidSquares(List) -> list:
+    while [-1,-1] in List:
+        List.remove([-1,-1])
+        
+    while [] in List:
+        List.remove([])
+        
+    return List
 
 class Piece:
     def __init__(self, color, position):
         self.color = color
         self.position = position
         self.has_moved = False
+        
+    def __str__(self) -> str:
+        return f"{self.color[0]}{self.__class__.__name__[0]}"
     
     def move(self, new_position):
-        # Update the piece's position and has_moved attribute
         self.position = new_position
         self.has_moved = True
     
     def possible_moves(self):
-        # Return a list of all the legal squares the piece could move to
-        # Given the current state of the board
         pass
     
 class Pawn(Piece):
@@ -30,33 +37,119 @@ class Pawn(Piece):
         
         super().__init__(color, position)
         
-        self.value = 1
-        self.color = color
-        self.has_moved = False
-        self.position = position
+        self.value = 1.0
         
-    def possible_moves(self):
+    def __str__(self) -> str:
+        return f"{self.color[0]}{self.__class__.__name__[0]}"
+    
+    def possible_moves(self, _):
         
         if self.color == "white":
 
-            return [
-                    squareExist([self.position[0] -1, self.position[1] +1]),
+            moves = [
+                    squareExist([self.position[0] +1, self.position[1] -1]),
                     squareExist([self.position[0] +1, self.position[1] +1])
                     ]
-        
-        return [squareExist([self.position[0] -1, self.position[1] -1]), squareExist([self.position[0] +1, self.position[1]-1])]
+        else:
+            
+            moves = [squareExist([self.position[0] -1, self.position[1] +1]),
+                     squareExist([self.position[0] -1, self.position[1]-1])]
+
+        return removeInvalidSquares(moves)
     
 
 class Rook(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+        self.value = 5.1
         
-    def possible_moves(self):
-        return super().possible_moves()
-    
+        
+    # I have no idea how or why it works and i'm afraid to touch it
+    def possible_moves(self, boardEntity) -> list:
+        moves = []
+        
+        for plusx in range(1, 8-int(self.position[1])):
+
+            case = boardEntity.board[self.position[0]][self.position[1] + plusx]
+
+            if case.__str__() == " ":
+                moves.append(squareExist([self.position[0], self.position[1] + plusx]))
+                continue
+            
+            if not case.color == self.color:
+                moves.append(squareExist([self.position[0], self.position[1] + plusx]))
+                break
+            else:
+                break
+        
+        
+  
+        for minusx in range(1, int(self.position[1]) + 1):
+            
+            case = boardEntity.board[self.position[0]][self.position[1]  - minusx]
+            
+            if case.__str__() == " ":
+                moves.append(squareExist([self.position[0], self.position[1] - minusx]))
+                continue
+            
+            if not case.color == self.color:
+                moves.append(squareExist([self.position[0], self.position[1] - minusx]))
+                break
+            else:
+                break
+         
+        for plusy in range(1, int(self.position[0]) + 1):
+            
+            case = boardEntity.board[self.position[0] - plusy][self.position[1]]
+            
+            if str(case) == " ":
+                moves.append(squareExist([self.position[0] - plusy, self.position[1]]))
+                continue
+            
+            if not case.color == self.color:
+                moves.append(squareExist([self.position[0] - plusy, self.position[1]]))
+                break
+            else:
+                break
+            
+        for minusy in range(1, 8 - int(self.position[0])):
+            
+            case = boardEntity.board[self.position[0] + minusy][self.position[1]]
+        
+            if str(case) == " ":
+                moves.append(squareExist([self.position[0] + minusy, self.position[1]]))
+                continue
+            
+            if not case.color == self.color:
+                moves.append(squareExist([self.position[0] + minusy, self.position[1]]))
+                break
+            else:
+                break
+            
+        return removeInvalidSquares(moves)
+           
+            
+        
+          
+            
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Knight(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+        self.value = 3.2
         
     def possible_moves(self):
         return super().possible_moves()
@@ -64,18 +157,20 @@ class Knight(Piece):
 class Bishop(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
+        self.value = 3.3
     
-    def possible_moves(self):
-        return super().possible_moves()
+    def possible_moves(self) -> list:
+        return []
     
     
-class Queen(Piece):
+class Queen(Bishop, Rook):
     def __init__(self, color, position):
         super().__init__(color, position)
-        
+        self.value = 8.8
+       
     def possible_moves(self):
-        return super().possible_moves()
-    
+        return super(Bishop).possible_moves() + super(Rook).possible_moves() # type: ignore
+     
 class King(Piece):
     def __init__(self, color, position):
         super().__init__(color, position)
